@@ -8,6 +8,9 @@ from albumentations.pytorch import ToTensorV2
 import numpy as np
 from flasgger import Swagger
 from processing.main import processing_pairs
+import base64
+import io
+import os
 
 app = Flask(__name__)
 swagger = Swagger(app)
@@ -24,6 +27,11 @@ transform = A.Compose([
     #),
     ToTensorV2(),
 ])
+
+def encode_image_base64(image_path: str):
+    """Converte uma imagem em base64 para envio no JSON"""
+    with open(image_path, "rb") as img_file:
+        return base64.b64encode(img_file.read()).decode("utf-8")
 
 @app.route("/")
 def index():
@@ -94,7 +102,8 @@ def predict():
 @app.route("/compare", methods=["POST"])
 def compare():
     """
-    Process two signature images and return comparison figures.
+    Process two signature images and return the generated comparison figures encoded in Base64.
+
     ---
     consumes:
       - multipart/form-data
@@ -103,33 +112,41 @@ def compare():
         in: formData
         type: file
         required: true
-        description: First signature image (PNG or JPG)
+        description: First signature image (PNG or JPG).
       - name: signature2
         in: formData
         type: file
         required: true
-        description: Second signature image (PNG or JPG)
+        description: Second signature image (PNG or JPG).
     responses:
       200:
-        description: Returns 3 generated comparison images.
+        description: Returns the three generated comparison images encoded in Base64.
         schema:
           type: object
           properties:
             jaccard_image:
               type: string
-              example: /compare/image/jaccard
+              description: Base64-encoded image showing the Jaccard index comparison between the two signatures.
+              example: "iVBORw0KGgoAAAANSUhEUgAA..."
             pressure_comparison:
               type: string
-              example: /compare/image/pressure
+              description: Base64-encoded image showing the comparison of pressure distributions.
+              example: "iVBORw0KGgoAAAANSUhEUgAA..."
             vector_comparison:
               type: string
-              example: /compare/image/vector
+              description: Base64-encoded image showing vector direction and flow comparison.
+              example: "iVBORw0KGgoAAAANSUhEUgAA..."
+      400:
+        description: Bad request (missing or invalid inputs).
+      500:
+        description: Internal server error.
     """
+
     if 'signature1' not in request.files or 'signature2' not in request.files:
         return jsonify({"error": "Both 'signature1' and 'signature2' files are required."}), 400
 
     try:
-        # Salvar temporariamente as imagens enviadas
+        # Criar pasta temporária
         os.makedirs("./uploads", exist_ok=True)
         img1_path = "./uploads/temp1.png"
         img2_path = "./uploads/temp2.png"
@@ -137,23 +154,30 @@ def compare():
         Image.open(request.files['signature1']).save(img1_path)
         Image.open(request.files['signature2']).save(img2_path)
 
-        # Chama função de processamento (gera as imagens)
+        # Processar imagens (gera as figuras de comparação)
         processing_pairs(img1_path, img2_path)
 
-        # Caminhos das imagens geradas
-        results = {
-            "jaccard_image": "/compare/image/jaccard",
-            "pressure_comparison": "/compare/image/pressure",
-            "vector_comparison": "/compare/image/vector"
-        }
+        # Caminhos esperados de saída
+        jaccard_path = "./processing/jaccard.png"
+        pressure_path = "./processing/pressure_comparison.png"
+        vector_path = "./processing/vector_comparison.png"
 
-        return jsonify(results)
+        # Converter para base64
+        jaccard_b64 = encode_image_base64(jaccard_path)
+        pressure_b64 = encode_image_base64(pressure_path)
+        vector_b64 = encode_image_base64(vector_path)
+
+        # Retornar JSON
+        return jsonify({
+            "jaccard_image": jaccard_b64,
+            "pressure_comparison": pressure_b64,
+            "vector_comparison": vector_b64
+        })
 
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
 if __name__ == "__main__":
-    processing_pairs()
     import os
     port = int(os.environ.get("PORT", 5000))
     app.run(debug=True, host="0.0.0.0", port=port)
