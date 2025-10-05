@@ -1,6 +1,6 @@
 import cv2
 import numpy as np
-from esqueleta import esqueleta
+from .esqueleta import esqueleta
 
 def bridge(image):
     bridged = image.copy()
