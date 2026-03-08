@@ -33,6 +33,19 @@ def encode_image_base64(image_path: str):
     with open(image_path, "rb") as img_file:
         return base64.b64encode(img_file.read()).decode("utf-8")
 
+
+def resize_keep_aspect(img: Image.Image, max_dim: int = 1024) -> Image.Image:
+    w, h = img.size
+
+    if max(w, h) <= max_dim:
+        return img
+
+    scale = max_dim / float(max(w, h))
+    new_w = int(w * scale)
+    new_h = int(h * scale)
+
+    return img.resize((new_w, new_h), Image.Resampling.LANCZOS)
+
 @app.route("/")
 def index():
     """
@@ -146,15 +159,25 @@ def compare():
         return jsonify({"error": "Both 'signature1' and 'signature2' files are required."}), 400
 
     try:
-        # Criar pasta temporária
         os.makedirs("./uploads", exist_ok=True)
         img1_path = "./uploads/temp1.png"
         img2_path = "./uploads/temp2.png"
 
-        Image.open(request.files['signature1']).save(img1_path)
-        Image.open(request.files['signature2']).save(img2_path)
+        img1 = Image.open(request.files['signature1']).convert("L")
+        img2 = Image.open(request.files['signature2']).convert("L")
 
-        # Processar imagens (gera as figuras de comparação)
+        print("img1 size antes:", img1.size)
+        print("img2 size antes:", img2.size)
+
+        img1 = resize_keep_aspect(img1, max_dim=1024)
+        img2 = resize_keep_aspect(img2, max_dim=1024)
+
+        print("img1 size depois:", img1.size)
+        print("img2 size depois:", img2.size)
+
+        img1.save(img1_path)
+        img2.save(img2_path)
+
         processing_pairs(img1_path, img2_path)
 
         # Caminhos esperados de saída
