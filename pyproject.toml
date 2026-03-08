@@ -19,7 +19,8 @@ albumentations = "1.4.15"
 albucore = "0.0.15"
 flasgger = "0.9.7.1"
 numpy = "1.26.4"
-gunicorn = "21.2.0"
+gunicorn = "^21.2.0"
+matplotlib = "^3.10.7"
 
 [tool.poetry.scripts]
 signature-server = "app:app"

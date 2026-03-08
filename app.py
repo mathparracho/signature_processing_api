@@ -13,7 +13,7 @@ import io
 import os
 
 app = Flask(__name__)
-swagger = Swagger(app)
+swagger = Swagger(app)  ## http://194.163.172.45/apidocs/ || http://localhost/apidocs/
 
 model = ContrastiveNetwork()
 model.load_state_dict(torch.load("model_weights.pth", map_location="cpu"))
