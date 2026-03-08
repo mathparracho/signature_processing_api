@@ -30,4 +30,9 @@ COPY . .
 EXPOSE 5000
 
 # Comando padrão (usa Gunicorn com 4 workers)
-CMD ["poetry", "run", "gunicorn", "-w", "4", "-b", "0.0.0.0:5000", "app:app"]
+CMD ["poetry", "run", "gunicorn",\
+     "-w", "1",\
+     "-b", "0.0.0.0:5000",\
+     "--timeout", "180",\
+     "--graceful-timeout", "180",\
+     "app:app"]
