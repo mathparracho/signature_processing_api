@@ -158,9 +158,9 @@ def compare():
         processing_pairs(img1_path, img2_path)
 
         # Caminhos esperados de saída
-        jaccard_path = "./processing/jaccard.png"
-        pressure_path = "./processing/pressure_comparison.png"
-        vector_path = "./processing/vector_comparison.png"
+        jaccard_path = "./jaccard.png"
+        pressure_path = "./pressure_comparison.png"
+        vector_path = "./vector_comparison.png"
 
         # Converter para base64
         jaccard_b64 = encode_image_base64(jaccard_path)
