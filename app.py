@@ -13,7 +13,7 @@ import io
 import os
 
 app = Flask(__name__)
-swagger = Swagger(app)
+swagger = Swagger(app)  ## http://194.163.172.45/apidocs/ || http://localhost/apidocs/
 
 model = ContrastiveNetwork()
 model.load_state_dict(torch.load("model_weights.pth", map_location="cpu"))
@@ -158,9 +158,9 @@ def compare():
         processing_pairs(img1_path, img2_path)
 
         # Caminhos esperados de saída
-        jaccard_path = "./processing/jaccard.png"
-        pressure_path = "./processing/pressure_comparison.png"
-        vector_path = "./processing/vector_comparison.png"
+        jaccard_path = "./jaccard.png"
+        pressure_path = "./pressure_comparison.png"
+        vector_path = "./vector_comparison.png"
 
         # Converter para base64
         jaccard_b64 = encode_image_base64(jaccard_path)

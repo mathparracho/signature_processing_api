@@ -7,7 +7,7 @@ ENV PYTHONUNBUFFERED=1
 
 # Instalar dependências do sistema necessárias (ex: OpenCV, Pillow)
 RUN apt-get update && apt-get install -y \
-    libgl1-mesa-glx \
+    libgl1 \
     libglib2.0-0 \
     && rm -rf /var/lib/apt/lists/*
 
@@ -30,4 +30,9 @@ COPY . .
 EXPOSE 5000
 
 # Comando padrão (usa Gunicorn com 4 workers)
-CMD ["poetry", "run", "gunicorn", "-w", "4", "-b", "0.0.0.0:5000", "app:app"]
+CMD ["poetry", "run", "gunicorn",\
+     "-w", "1",\
+     "-b", "0.0.0.0:5000",\
+     "--timeout", "180",\
+     "--graceful-timeout", "180",\
+     "app:app"]
