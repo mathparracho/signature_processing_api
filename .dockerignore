@@ -40,5 +40,3 @@ ruff_cache
 *.pth
 *.ckpt
 *.onnx
-
-model_weights.pth
